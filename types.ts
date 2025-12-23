@@ -8,9 +8,18 @@ export interface Project {
   link: string;
 }
 
+export interface BlogPost {
+  id: string;
+  title: string;
+  excerpt: string;
+  date: string;
+  category: 'Tech' | 'Life' | 'Design';
+  readTime: string;
+}
+
 export interface Skill {
   name: string;
-  level: number; // 0-100
+  level: number;
   category: 'Frontend' | 'Backend' | 'Design' | 'AI/ML';
 }
 

@@ -3,12 +3,8 @@ import { GoogleGenAI } from "@google/genai";
 import { USER_INFO, PROJECTS, SKILLS } from "../constants.tsx";
 
 export class GeminiAssistant {
-  private ai: GoogleGenAI;
-
-  constructor() {
-    const apiKey = typeof process !== 'undefined' ? process.env.API_KEY : '';
-    this.ai = new GoogleGenAI({ apiKey: apiKey || '' });
-  }
+  // Always use process.env.API_KEY directly for initialization as per @google/genai coding guidelines
+  private ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
   async getChatResponse(message: string, history: { role: string; content: string }[]) {
     try {
@@ -29,6 +25,7 @@ export class GeminiAssistant {
         - Use Markdown for formatting if necessary.
       `;
 
+      // Use ai.models.generateContent to query GenAI with the model name, prompt history, and system instructions.
       const response = await this.ai.models.generateContent({
         model: "gemini-3-flash-preview",
         contents: [
@@ -42,6 +39,7 @@ export class GeminiAssistant {
         }
       });
 
+      // Extract generated text from response.text property (not a method)
       return response.text || "I'm sorry, I couldn't process that request.";
     } catch (error) {
       console.error("Gemini Error:", error);
