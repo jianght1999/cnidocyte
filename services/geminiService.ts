@@ -3,10 +3,11 @@ import { GoogleGenAI } from "@google/genai";
 import { USER_INFO, PROJECTS, SKILLS } from "../constants.tsx";
 
 export class GeminiAssistant {
-  // Always use process.env.API_KEY directly for initialization as per @google/genai coding guidelines
-  private ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-
   async getChatResponse(message: string, history: { role: string; content: string }[]) {
+    // CRITICAL: Create a new instance right before the API call to ensure it uses 
+    // the current environment variable and avoids initialization errors on load.
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+
     try {
       const systemInstruction = `
         You are an AI assistant representing ${USER_INFO.name}, a ${USER_INFO.title}.
@@ -25,8 +26,7 @@ export class GeminiAssistant {
         - Use Markdown for formatting if necessary.
       `;
 
-      // Use ai.models.generateContent to query GenAI with the model name, prompt history, and system instructions.
-      const response = await this.ai.models.generateContent({
+      const response = await ai.models.generateContent({
         model: "gemini-3-flash-preview",
         contents: [
           ...history.map(h => ({ role: h.role === 'assistant' ? 'model' : 'user', parts: [{ text: h.content }] })),
@@ -39,11 +39,10 @@ export class GeminiAssistant {
         }
       });
 
-      // Extract generated text from response.text property (not a method)
-      return response.text || "I'm sorry, I couldn't process that request.";
+      return response.text || "抱歉，我暂时无法回答这个问题。";
     } catch (error) {
       console.error("Gemini Error:", error);
-      return "I'm currently resting my neural networks. Please try again later!";
+      return "我的神经网络正在休息，请稍后再试！";
     }
   }
 }
