@@ -1,17 +1,17 @@
 
 import { GoogleGenAI } from "@google/genai";
-import { USER_INFO, PROJECTS, SKILLS } from "../constants";
+import { USER_INFO, PROJECTS, SKILLS } from "../constants.tsx";
 
 export class GeminiAssistant {
   private ai: GoogleGenAI;
 
   constructor() {
-    this.ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
+    const apiKey = typeof process !== 'undefined' ? process.env.API_KEY : '';
+    this.ai = new GoogleGenAI({ apiKey: apiKey || '' });
   }
 
   async getChatResponse(message: string, history: { role: string; content: string }[]) {
     try {
-      // System instructions providing context about the user
       const systemInstruction = `
         You are an AI assistant representing ${USER_INFO.name}, a ${USER_INFO.title}.
         Your goal is to answer questions from visitors to Alex's personal website.

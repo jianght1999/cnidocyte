@@ -1,5 +1,5 @@
 
-import { Project, Skill } from './types';
+import { Project, Skill } from './types.ts';
 
 export const USER_INFO = {
   name: "Alex Chen",

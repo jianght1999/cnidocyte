@@ -1,8 +1,8 @@
 
 import React from 'react';
-import { Layout } from './components/Layout';
-import { AIChat } from './components/AIChat';
-import { USER_INFO, PROJECTS, SKILLS } from './constants';
+import { Layout } from './components/Layout.tsx';
+import { AIChat } from './components/AIChat.tsx';
+import { USER_INFO, PROJECTS, SKILLS } from './constants.tsx';
 
 const App: React.FC = () => {
   return (
