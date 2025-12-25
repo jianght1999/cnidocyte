@@ -2,9 +2,9 @@
 import { Project, Skill, BlogPost } from './types.ts';
 
 export const USER_INFO = {
-  name: "ALEX CHEN",
+  name: "FUZZYEEE",
   title: "Fullstack Engineer & Designer",
-  bio: "致力于在复杂性中寻找秩序。作为一名深耕全栈开发与交互设计的跨界开发者，我坚信技术不应只是功能的堆砌，而应当是情感与逻辑的完美融合。在过去五年的职业生涯中，我专注于构建具有极致响应速度、优雅交互细节以及高度可扩展性的数字平台。从底层架构的精密逻辑到用户指尖触碰的每一像素，我都追求一种极致的克制与纯粹。",
+  bio: "这个网站目前还非常简陋，也没做什么设计，不过我会慢慢往里面填东西。",
   email: "alex.chen.dev@example.com",
   github: "https://github.com/alexchen",
   linkedin: "https://linkedin.com/in/alexchen",
@@ -21,32 +21,8 @@ export const CAROUSEL_IMAGES = [
   "https://images.unsplash.com/photo-1451187530230-b23b995163c9?q=80&w=2000&auto=format&fit=crop"
 ];
 
-export const BLOG_POSTS: BlogPost[] = [
-  {
-    id: '1',
-    title: '为什么极简主义是开发的终极形式',
-    excerpt: '在代码日益复杂的今天，我们如何通过削减冗余来提高系统的健壮性？',
-    date: '2024-03-20',
-    category: 'Design',
-    readTime: '5 min'
-  },
-  {
-    id: '2',
-    title: '深入浅出 Gemini API：构建你的第一个 AI 助手',
-    excerpt: '手把手教你如何利用 Google 的最新模型为你的网页添加智能交互。',
-    date: '2024-03-15',
-    category: 'Tech',
-    readTime: '8 min'
-  },
-  {
-    id: '3',
-    title: '数字游民的真实生活状态',
-    excerpt: '离开办公室的这一年，我学到的关于自由与自律的十件事。',
-    date: '2024-03-10',
-    category: 'Life',
-    readTime: '12 min'
-  }
-];
+// Removed default blog posts as requested. Admin can still add them via the dashboard.
+export const BLOG_POSTS: BlogPost[] = [];
 
 export const SKILLS: Skill[] = [
   { name: 'React', level: 95, category: 'Frontend' },
