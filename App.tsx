@@ -10,7 +10,12 @@ const App: React.FC = () => {
   const [currentSection, setSection] = useState('home');
   const [posts, setPosts] = useState<BlogPost[]>(() => {
     const saved = localStorage.getItem('blog_posts');
-    return saved ? JSON.parse(saved) : BLOG_POSTS;
+    // Ensure all loaded posts have a content field to prevent crashes with old data
+    const parsed = saved ? JSON.parse(saved) : BLOG_POSTS;
+    return (parsed as BlogPost[]).map(post => ({
+      ...post,
+      content: post.content || ''
+    }));
   });
   
   const [isAdmin, setIsAdmin] = useState(() => localStorage.getItem('isAdmin') === 'true');
@@ -18,7 +23,7 @@ const App: React.FC = () => {
   const [loginData, setLoginData] = useState({ username: '', password: '' });
   const [isEditing, setIsEditing] = useState<BlogPost | null>(null);
   const [showEditModal, setShowEditModal] = useState(false);
-  const [viewingPost, setViewingPost] = useState<BlogPost | null>(null); // For reading the post
+  const [viewingPost, setViewingPost] = useState<BlogPost | null>(null);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -46,7 +51,7 @@ const App: React.FC = () => {
       {/* Hero Section */}
       <div className="flex flex-col gap-12 mb-32">
         <header className="w-full">
-          <h1 className="text-[12vw] font-black leading-[0.8] tracking-tighter mb-16 select-none">
+          <h1 className="text-[12vw] font-black leading-[0.8] tracking-tighter mb-16 select-none uppercase">
             {USER_INFO.name}
           </h1>
           <div className="flex flex-col md:flex-row items-start justify-between gap-12 md:gap-32">
@@ -247,11 +252,13 @@ const App: React.FC = () => {
             </h1>
             <div className="h-px w-20 bg-black mb-16"></div>
             <div className="prose prose-slate max-w-none">
-              {viewingPost.content.split('\n').map((para, i) => (
+              {/* Added fallback for content to avoid .split() error */}
+              {(viewingPost.content || '').split('\n').map((para, i) => (
                 <p key={i} className="text-xl md:text-2xl font-light leading-relaxed mb-8 text-slate-800 whitespace-pre-wrap">
                   {para}
                 </p>
               ))}
+              {(!viewingPost.content) && <p className="text-slate-300 italic">No content available for this post.</p>}
             </div>
           </div>
         </div>
@@ -286,7 +293,7 @@ const App: React.FC = () => {
                 content: f.get('content') as string,
                 category: f.get('category') as any, 
                 date: new Date().toISOString().split('T')[0], 
-                readTime: `${Math.ceil((f.get('content') as string).length / 200)} min`
+                readTime: `${Math.ceil(((f.get('content') as string) || '').length / 200) || 1} min`
               };
               if (isEditing) setPosts(p => p.map(x => x.id === isEditing.id ? { ...x, ...data } : x));
               else setPosts(p => [{ id: Date.now().toString(), ...data }, ...p]);
