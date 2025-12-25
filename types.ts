@@ -14,7 +14,7 @@ export interface BlogPost {
   excerpt: string;
   content: string; // Added field for full article content
   date: string;
-  category: 'Tech' | 'Life' | 'Design';
+  category: 'Tech' | 'Notes' | 'Craft' | 'Standards'; // Replaced Analog with Craft
   readTime: string;
 }
 

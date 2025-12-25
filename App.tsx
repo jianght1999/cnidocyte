@@ -8,6 +8,9 @@ import { BlogPost } from './types.ts';
 
 const App: React.FC = () => {
   const [currentSection, setSection] = useState('home');
+  const [avatarUrl, setAvatarUrl] = useState(() => {
+    return localStorage.getItem('user_avatar') || USER_INFO.avatarUrl;
+  });
   const [posts, setPosts] = useState<BlogPost[]>(() => {
     const saved = localStorage.getItem('blog_posts');
     // Ensure all loaded posts have a content field to prevent crashes with old data
@@ -24,8 +27,6 @@ const App: React.FC = () => {
   const [isEditing, setIsEditing] = useState<BlogPost | null>(null);
   const [showEditModal, setShowEditModal] = useState(false);
   const [viewingPost, setViewingPost] = useState<BlogPost | null>(null);
-  
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     localStorage.setItem('blog_posts', JSON.stringify(posts));
@@ -34,6 +35,10 @@ const App: React.FC = () => {
   useEffect(() => {
     localStorage.setItem('isAdmin', isAdmin.toString());
   }, [isAdmin]);
+
+  useEffect(() => {
+    localStorage.setItem('user_avatar', avatarUrl);
+  }, [avatarUrl]);
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -186,6 +191,8 @@ const App: React.FC = () => {
         currentSection={currentSection} 
         setSection={setSection} 
         isAdmin={isAdmin} 
+        avatarUrl={avatarUrl}
+        onAvatarUpdate={setAvatarUrl}
         onLoginClick={() => setShowLogin(true)} 
         onLogout={() => setIsAdmin(false)} 
       />
@@ -266,7 +273,7 @@ const App: React.FC = () => {
       {/* Admin Login Modal */}
       {showLogin && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center bg-white/90 backdrop-blur-sm p-6">
-          <div className="w-full max-w-sm p-12 border border-black animate-fade">
+          <div className="w-full max-sm p-12 border border-black animate-fade">
             <h2 className="text-2xl font-black mb-8 uppercase tracking-tighter">Access Key</h2>
             <form onSubmit={handleLogin} className="space-y-6">
               <input type="text" value={loginData.username} onChange={e => setLoginData({...loginData, username: e.target.value})} className="w-full border-b border-black py-4 focus:outline-none placeholder:text-slate-300 font-bold" placeholder="Username" />
@@ -307,7 +314,10 @@ const App: React.FC = () => {
                 <div className="space-y-2">
                   <label className="text-[10px] font-black uppercase tracking-widest text-slate-300">Category Selection</label>
                   <select name="category" defaultValue={isEditing?.category || 'Tech'} className="w-full border-b border-slate-100 py-4 focus:outline-none focus:border-black transition-colors font-bold appearance-none bg-transparent">
-                    <option value="Tech">Tech</option><option value="Design">Design</option><option value="Life">Life</option>
+                    <option value="Tech">Tech</option>
+                    <option value="Standards">Standards</option>
+                    <option value="Craft">Craft</option>
+                    <option value="Notes">Notes</option>
                   </select>
                 </div>
               </div>
