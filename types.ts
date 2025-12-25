@@ -12,6 +12,7 @@ export interface BlogPost {
   id: string;
   title: string;
   excerpt: string;
+  content: string; // Added field for full article content
   date: string;
   category: 'Tech' | 'Life' | 'Design';
   readTime: string;

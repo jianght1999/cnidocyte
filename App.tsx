@@ -18,6 +18,7 @@ const App: React.FC = () => {
   const [loginData, setLoginData] = useState({ username: '', password: '' });
   const [isEditing, setIsEditing] = useState<BlogPost | null>(null);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [viewingPost, setViewingPost] = useState<BlogPost | null>(null); // For reading the post
   
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -75,7 +76,6 @@ const App: React.FC = () => {
 
       {/* Info Grid */}
       <section className="grid grid-cols-1 md:grid-cols-2 gap-16 md:gap-32 py-40 border-b border-slate-100">
-        {/* Replaced Philosophy with Build Document */}
         <div 
           className="space-y-10 group cursor-pointer" 
           onClick={() => setSection('Tech')}
@@ -125,7 +125,7 @@ const App: React.FC = () => {
         </div>
       </section>
 
-      {/* Connection Section / Footer */}
+      {/* Footer */}
       <section className="py-40">
         <div className="flex flex-col md:flex-row justify-between items-start gap-20">
           <div className="max-w-xl">
@@ -206,12 +206,17 @@ const App: React.FC = () => {
                       <span className="text-black">{post.readTime}</span>
                       {isAdmin && (
                         <div className="flex space-x-4 ml-auto opacity-0 group-hover:opacity-100 transition-opacity">
-                          <button onClick={() => { setIsEditing(post); setShowEditModal(true); }} className="text-slate-400 hover:text-black">Edit</button>
-                          <button onClick={() => setPosts(p => p.filter(x => x.id !== post.id))} className="text-slate-400 hover:text-red-600">Delete</button>
+                          <button onClick={(e) => { e.stopPropagation(); setIsEditing(post); setShowEditModal(true); }} className="text-slate-400 hover:text-black">Edit</button>
+                          <button onClick={(e) => { e.stopPropagation(); setPosts(p => p.filter(x => x.id !== post.id)); }} className="text-slate-400 hover:text-red-600">Delete</button>
                         </div>
                       )}
                     </div>
-                    <h3 className="text-3xl font-black mb-6 hover:translate-x-2 transition-transform cursor-pointer leading-tight">{post.title}</h3>
+                    <h3 
+                      onClick={() => setViewingPost(post)}
+                      className="text-3xl font-black mb-6 hover:translate-x-2 transition-transform cursor-pointer leading-tight group-hover:text-slate-500"
+                    >
+                      {post.title}
+                    </h3>
                     <p className="text-lg text-slate-400 leading-relaxed font-light">{post.excerpt}</p>
                   </div>
                 </article>
@@ -224,7 +229,35 @@ const App: React.FC = () => {
         )}
       </main>
 
-      {/* Simplified Admin Modal */}
+      {/* Post Reading View (Details Modal) */}
+      {viewingPost && (
+        <div className="fixed inset-0 z-[150] bg-white flex flex-col overflow-y-auto p-8 md:p-20">
+          <div className="max-w-3xl mx-auto w-full animate-fade">
+            <button 
+              onClick={() => setViewingPost(null)}
+              className="mb-16 flex items-center space-x-4 text-xs font-black uppercase tracking-widest hover:translate-x-[-10px] transition-transform"
+            >
+              <span>← Back to {viewingPost.category}</span>
+            </button>
+            <div className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-300 mb-6">
+              {viewingPost.date} — {viewingPost.readTime}
+            </div>
+            <h1 className="text-5xl md:text-7xl font-black mb-16 leading-none tracking-tighter uppercase">
+              {viewingPost.title}
+            </h1>
+            <div className="h-px w-20 bg-black mb-16"></div>
+            <div className="prose prose-slate max-w-none">
+              {viewingPost.content.split('\n').map((para, i) => (
+                <p key={i} className="text-xl md:text-2xl font-light leading-relaxed mb-8 text-slate-800 whitespace-pre-wrap">
+                  {para}
+                </p>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Admin Login Modal */}
       {showLogin && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center bg-white/90 backdrop-blur-sm p-6">
           <div className="w-full max-w-sm p-12 border border-black animate-fade">
@@ -239,25 +272,45 @@ const App: React.FC = () => {
         </div>
       )}
 
+      {/* Edit/New Post Modal */}
       {showEditModal && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center bg-white p-6 md:p-20 overflow-y-auto">
-          <div className="w-full max-w-3xl mx-auto animate-fade">
-            <h2 className="text-5xl font-black mb-20 uppercase tracking-tighter">{isEditing ? 'Edit' : 'New'} Draft</h2>
+          <div className="w-full max-w-4xl mx-auto animate-fade">
+            <h2 className="text-5xl font-black mb-12 uppercase tracking-tighter">{isEditing ? 'Edit' : 'New'} Draft</h2>
             <form onSubmit={(e) => {
               e.preventDefault();
               const f = new FormData(e.currentTarget);
-              const data = { title: f.get('title') as string, excerpt: f.get('excerpt') as string, category: f.get('category') as any, date: new Date().toISOString().split('T')[0], readTime: '5 min' };
+              const data = { 
+                title: f.get('title') as string, 
+                excerpt: f.get('excerpt') as string, 
+                content: f.get('content') as string,
+                category: f.get('category') as any, 
+                date: new Date().toISOString().split('T')[0], 
+                readTime: `${Math.ceil((f.get('content') as string).length / 200)} min`
+              };
               if (isEditing) setPosts(p => p.map(x => x.id === isEditing.id ? { ...x, ...data } : x));
               else setPosts(p => [{ id: Date.now().toString(), ...data }, ...p]);
               setShowEditModal(false);
-            }} className="space-y-12">
+            }} className="space-y-8">
               <input name="title" defaultValue={isEditing?.title || ''} required className="w-full text-4xl font-black border-b border-slate-100 py-6 focus:outline-none placeholder:text-slate-100" placeholder="Post Title" />
+              
               <div className="grid grid-cols-2 gap-10">
                 <select name="category" defaultValue={isEditing?.category || 'Tech'} className="border-b border-slate-100 py-4 focus:outline-none font-bold">
                   <option value="Tech">Tech</option><option value="Design">Design</option><option value="Life">Life</option>
                 </select>
+                <div className="text-[10px] font-black uppercase tracking-widest text-slate-300 self-center">Category selection</div>
               </div>
-              <textarea name="excerpt" defaultValue={isEditing?.excerpt || ''} required rows={6} className="w-full text-xl font-light border-b border-slate-100 py-6 focus:outline-none resize-none placeholder:text-slate-100" placeholder="Write your thoughts here..." />
+
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase tracking-widest text-slate-300">Snippet (Shows in list)</label>
+                <textarea name="excerpt" defaultValue={isEditing?.excerpt || ''} required rows={2} className="w-full text-lg font-light border-b border-slate-100 py-4 focus:outline-none resize-none placeholder:text-slate-100" placeholder="Brief summary of the post..." />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase tracking-widest text-slate-300">Full Content</label>
+                <textarea name="content" defaultValue={isEditing?.content || ''} required rows={12} className="w-full text-xl font-light border border-slate-100 p-6 focus:border-black transition-colors focus:outline-none resize-none placeholder:text-slate-100" placeholder="Write your full story here..." />
+              </div>
+
               <div className="flex space-x-12 pt-10">
                 <button type="submit" className="bg-black text-white font-black px-12 py-5 uppercase text-xs tracking-widest hover:bg-slate-800 transition-colors">Save Content</button>
                 <button type="button" onClick={() => setShowEditModal(false)} className="font-black uppercase text-xs tracking-widest text-slate-300 hover:text-black transition-colors">Discard</button>
