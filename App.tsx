@@ -190,11 +190,12 @@ const App: React.FC = () => {
         onLogout={() => setIsAdmin(false)} 
       />
       
-      <main className="flex-1 ml-20 p-8 md:p-12 lg:p-20 overflow-x-hidden">
+      {/* 调整了 Main 的响应式边距，增加了左边距的安全空间 */}
+      <main className="flex-1 ml-20 md:ml-28 lg:ml-32 p-6 md:p-12 lg:p-20 overflow-x-hidden">
         {currentSection === 'home' ? renderHome() : (
-          <div className="max-w-4xl mx-auto py-12 animate-fade">
+          <div className="max-w-4xl mx-auto py-12 animate-fade px-4 md:px-10">
              <div className="flex items-center justify-between mb-24">
-                <h2 className="text-5xl font-black uppercase tracking-tighter">{currentSection}</h2>
+                <h2 className="text-5xl md:text-6xl font-black uppercase tracking-tighter">{currentSection}</h2>
                 {isAdmin && (
                   <button onClick={() => { setIsEditing(null); setShowEditModal(true); }} className="text-[10px] font-black uppercase tracking-widest px-8 py-3 bg-black text-white hover:bg-slate-800 transition-colors">
                     + New Post
@@ -216,13 +217,14 @@ const App: React.FC = () => {
                         </div>
                       )}
                     </div>
+                    {/* 标题悬停动画略微向右偏移，增加层次感 */}
                     <h3 
                       onClick={() => setViewingPost(post)}
-                      className="text-3xl font-black mb-6 hover:translate-x-2 transition-transform cursor-pointer leading-tight group-hover:text-slate-500"
+                      className="text-3xl md:text-4xl font-black mb-6 hover:translate-x-4 transition-all duration-300 cursor-pointer leading-tight group-hover:text-slate-500"
                     >
                       {post.title}
                     </h3>
-                    <p className="text-lg text-slate-400 leading-relaxed font-light">{post.excerpt}</p>
+                    <p className="text-lg md:text-xl text-slate-400 leading-relaxed font-light">{post.excerpt}</p>
                   </div>
                 </article>
               ))}
@@ -252,7 +254,6 @@ const App: React.FC = () => {
             </h1>
             <div className="h-px w-20 bg-black mb-16"></div>
             <div className="prose prose-slate max-w-none">
-              {/* Added fallback for content to avoid .split() error */}
               {(viewingPost.content || '').split('\n').map((para, i) => (
                 <p key={i} className="text-xl md:text-2xl font-light leading-relaxed mb-8 text-slate-800 whitespace-pre-wrap">
                   {para}
