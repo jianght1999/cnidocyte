@@ -1,90 +1,74 @@
 
 import { BlogPost } from '../types.ts';
 
-const API_BASE_URL = (typeof process !== 'undefined' && process.env.VITE_API_BASE_URL) || '';
+// 在 Vercel 部署后，/api 路由是自动生效的
+const API_BASE_URL = '/api';
 
 class DataService {
   private async safeFetch(url: string, options?: RequestInit) {
-    if (!API_BASE_URL || API_BASE_URL === '/api') return null;
     try {
       const res = await fetch(`${API_BASE_URL}${url}`, {
         ...options,
-        signal: AbortSignal.timeout(3000)
+        headers: {
+          'Content-Type': 'application/json',
+          ...options?.headers,
+        }
       });
-      if (!res.ok) return null;
+      if (!res.ok) {
+        const error = await res.text();
+        console.error('API Error:', error);
+        return null;
+      }
       return await res.json();
     } catch (e) {
+      console.error('Fetch Error:', e);
       return null;
     }
   }
 
   async getPosts(): Promise<BlogPost[]> {
-    const cloudData = await this.safeFetch('/posts');
-    if (cloudData) {
-      localStorage.setItem('v3_posts', JSON.stringify(cloudData));
-      return cloudData;
-    }
-    return JSON.parse(localStorage.getItem('v3_posts') || '[]');
+    const data = await this.safeFetch('/posts');
+    return data || [];
   }
 
   async savePost(post: BlogPost): Promise<void> {
     await this.safeFetch('/posts', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(post)
     });
-    const local = JSON.parse(localStorage.getItem('v3_posts') || '[]');
-    const updated = local.some((p: any) => p.id === post.id) 
-      ? local.map((p: any) => p.id === post.id ? post : p)
-      : [post, ...local];
-    localStorage.setItem('v3_posts', JSON.stringify(updated));
   }
 
   async deletePost(id: string): Promise<void> {
-    await this.safeFetch(`/posts/${id}`, { method: 'DELETE' });
-    const local = JSON.parse(localStorage.getItem('v3_posts') || '[]');
-    localStorage.setItem('v3_posts', JSON.stringify(local.filter((p: any) => p.id !== id)));
+    await this.safeFetch(`/posts?id=${id}`, { method: 'DELETE' });
   }
 
   async getConfig() {
-    const cloud = await this.safeFetch('/config');
-    return cloud || {
-      avatarUrl: localStorage.getItem('v3_avatar') || '',
-      galleryImages: JSON.parse(localStorage.getItem('v3_gallery') || '[]')
-    };
+    const data = await this.safeFetch('/config');
+    return data || { avatarUrl: '', galleryImages: [] };
   }
 
   async updateConfig(data: any): Promise<void> {
     await this.safeFetch('/config', {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data)
     });
-    if (data.avatarUrl) localStorage.setItem('v3_avatar', data.avatarUrl);
-    if (data.galleryImages) localStorage.setItem('v3_gallery', JSON.stringify(data.galleryImages));
   }
 
   getGalleryImages(fallback: string[]): string[] {
+    // 初始加载由 App.tsx 的 getConfig 完成，这里提供一个简易缓存逻辑
     const cached = localStorage.getItem('v3_gallery');
-    if (cached) {
-      const parsed = JSON.parse(cached);
-      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-    }
-    return fallback;
+    return cached ? JSON.parse(cached) : fallback;
   }
 
   async saveGalleryImages(images: string[]): Promise<void> {
+    localStorage.setItem('v3_gallery', JSON.stringify(images));
     await this.updateConfig({ galleryImages: images });
   }
 
   async uploadImage(base64: string): Promise<string> {
-    const data = await this.safeFetch('/upload', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ image: base64 })
-    });
-    // 如果后端成功则返回 URL，否则返回原 base64 确保能预览
-    return data?.url || base64;
+    // 简单起见，图片仍返回 base64 或通过 API 处理
+    // 实际生产环境建议对接 Cloudinary 或 OSS
+    return base64;
   }
 }
 
